@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seasons Classification Game</title>
+    <style>
+        body {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 25%, #fecfef 50%, #fad0c4 100%);
+            min-height: 100vh;
+            color: #333;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Seasonal Background Animations */
+        .seasonal-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Spring - Floating Flowers */
+        .spring-bg {
+            background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 50%, #ffd3a5 100%);
+        }
+
+        .flower {
+            position: absolute;
+            font-size: 20px;
+            animation: float 6s ease-in-out infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        /* Summer - Sunny Yellow */
+        .summer-bg {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 50%, #fd79a8 100%);
+        }
+
+        .sun-ray {
+            position: absolute;
+            width: 2px;
+            height: 100px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.8), transparent);
+            animation: sunRays 4s linear infinite;
+        }
+
+        @keyframes sunRays {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Autumn - Falling Leaves */
+        .autumn-bg {
+            background: linear-gradient(135deg, #d63031 0%, #e17055 30%, #fdcb6e 70%, #e84393 100%);
+        }
+
+        .leaf {
+            position: absolute;
+            font-size: 24px;
+            animation: fall 8s linear infinite;
+            opacity: 0.8;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-100px) rotate(0deg); }
+            25% { transform: translateY(25vh) rotate(90deg) translateX(50px); }
+            50% { transform: translateY(50vh) rotate(180deg) translateX(-30px); }
+            75% { transform: translateY(75vh) rotate(270deg) translateX(20px); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+
+        /* Winter - Falling Snowflakes */
+        .winter-bg {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 30%, #a29bfe 70%, #6c5ce7 100%);
+        }
+
+        .snowflake {
+            position: absolute;
+            color: white;
+            font-size: 18px;
+            animation: snow 10s linear infinite;
+            opacity: 0.9;
+        }
+
+        @keyframes snow {
+            0% { transform: translateY(-100px) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+
+        .game-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 2.8rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: #718096;
+            margin-bottom: 25px;
+        }
+
+        .privacy-notice {
+            background: #e6fffa;
+            border: 2px solid #38b2ac;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 0.9rem;
+            color: #234e52;
+            text-align: center;
+        }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 14px;
+            background: #e2e8f0;
+            border-radius: 7px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+            width: 0%;
+            transition: width 0.6s ease;
+        }
+
+        .score {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #4a5568;
+            white-space: nowrap;
+        }
+
+        .seasons-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .season-tab {
+            padding: 12px 24px;
+            border: 3px solid #e2e8f0;
+            border-radius: 25px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .season-tab.active {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .season-tab.spring.active {
+            border-color: #48bb78;
+            background: linear-gradient(135deg, #68d391, #48bb78);
+            color: white;
+        }
+
+        .season-tab.summer.active {
+            border-color: #ed8936;
+            background: linear-gradient(135deg, #f6ad55, #ed8936);
+            color: white;
+        }
+
+        .season-tab.autumn.active {
+            border-color: #d69e2e;
+            background: linear-gradient(135deg, #f6e05e, #d69e2e);
+            color: white;
+        }
+
+        .season-tab.winter.active {
+            border-color: #4299e1;
+            background: linear-gradient(135deg, #63b3ed, #4299e1);
+            color: white;
+        }
+
+        .game-content {
+            display: none;
+        }
+
+        .game-content.active {
+            display: block;
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .story-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .story-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 20px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .story-content {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #4a5568;
+            text-align: justify;
+        }
+
+        .story-blank {
+            display: inline-block;
+            min-width: 120px;
+            padding: 8px 12px;
+            margin: 0 4px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            background: #f7fafc;
+            text-align: center;
+            font-weight: 600;
+            color: #2d3748;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .story-blank:hover {
+            border-color: #4299e1;
+            background: #ebf8ff;
+        }
+
+        .story-blank.filled {
+            background: #f0fff4;
+            border-color: #48bb78;
+            color: #22543d;
+        }
+
+        .story-blank.incorrect {
+            background: #fff5f5;
+            border-color: #f56565;
+            animation: wiggle 0.5s ease-in-out;
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
+
+        .story-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .story-item {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px 16px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: #2d3748;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .story-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            border-color: #4299e1;
+        }
+
+        .story-item.dragging {
+            opacity: 0.6;
+            transform: rotate(2deg) scale(0.95);
+            cursor: grabbing;
+        }
+
+        .story-item.used {
+            opacity: 0.5;
+            background: #f7fafc;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .story-progress {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .story-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .voice-btn, .record-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .voice-btn:hover, .record-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .record-btn.recording {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .recording-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: #4a5568;
+            min-height: 24px;
+        }
+
+        .recording-status.active {
+            color: #e53e3e;
+        }
+
+        .recording-timer {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+
+        .items-section {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 25px;
+            border: 2px dashed #cbd5e0;
+            height: fit-content;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .items-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .item {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 12px 16px;
+            text-align: center;
+            cursor: grab;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+            border-color: #4299e1;
+        }
+
+        .item.dragging {
+            opacity: 0.6;
+            transform: rotate(3deg) scale(0.95);
+            cursor: grabbing;
+        }
+
+        .item-emoji {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.95rem;
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .category {
+            background: #f8fafc;
+            border: 3px dashed #cbd5e0;
+            border-radius: 20px;
+            padding: 20px;
+            min-height: 180px;
+            transition: all 0.3s ease;
+        }
+
+        .category.drag-over {
+            border-color: #4299e1;
+            background: #ebf8ff;
+            transform: scale(1.02);
+        }
+
+        .category.correct {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .category.incorrect {
+            border-color: #f56565;
+            background: #fff5f5;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .category-header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .category-emoji {
+            font-size: 2rem;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .category-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .category-items {
+            display: grid;
+            gap: 8px;
+        }
+
+        .category .item {
+            cursor: default;
+            background: #f7fafc;
+            border-color: #a0aec0;
+        }
+
+        .feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            text-align: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+            max-width: 400px;
+        }
+
+        .feedback.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .feedback.correct {
+            border-left: 6px solid #48bb78;
+        }
+
+        .feedback.incorrect {
+            border-left: 6px solid #f56565;
+        }
+
+        .feedback-emoji {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+        }
+
+        .feedback-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .feedback-detail {
+            color: #718096;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+
+        .completion-message {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            border-radius: 20px;
+            margin-top: 25px;
+            display: none;
+        }
+
+        .completion-message.show {
+            display: block;
+            animation: slideIn 0.6s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 1024px) {
+            .game-area {
+                grid-template-columns: 1fr;
+            }
+            
+            .categories-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2.2rem;
+            }
+            
+            .progress-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .seasons-tabs {
+                grid-template-columns: repeat(2, 1fr);
+                display: grid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title">🌸 Seasons Classification Game 🌸</h1>
+            <p class="subtitle">Drag items to their correct seasonal categories!</p>
+            <div class="privacy-notice">
+                <strong>🔒 Privacy Protected:</strong> All voice recordings stay safely on your device. Nothing is uploaded or shared with anyone.
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="score" id="scoreDisplay">Score: 0/16</div>
+            </div>
+        </div>
+
+        <div class="seasons-tabs">
+            <div class="season-tab spring active" data-season="spring">
+                🌸 <span>Spring</span>
+            </div>
+            <div class="season-tab summer" data-season="summer">
+                ☀️ <span>Summer</span>
+            </div>
+            <div class="season-tab autumn" data-season="autumn">
+                🍂 <span>Autumn</span>
+            </div>
+            <div class="season-tab winter" data-season="winter">
+                ❄️ <span>Winter</span>
+            </div>
+        </div>
+
+        <!-- Spring Content -->
+        <div class="game-content active" id="spring-content">
+            <div class="game-area">
+                <div class="items-section">
+                    <h2 class="section-title">🌱 Spring Items</h2>
+                    <div class="items-grid" id="spring-items">
+                        <!-- Items populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="categories-grid">
+                    <div class="category" data-category="clothes" data-season="spring">
+                        <div class="category-header">
+                            <span class="category-emoji">👕</span>
+                            <div class="category-name">Clothes & Accessories</div>
+                        </div>
+                        <div class="category-items" id="spring-clothes-items"></div>
+                    </div>
+
+                    <div class="category" data-category="weather" data-season="spring">
+                        <div class="category-header">
+                            <span class="category-emoji">🌦️</span>
+                            <div class="category-name">Weather Vocabulary</div>
+                        </div>
+                        <div class="category-items" id="spring-weather-items"></div>
+                    </div>
+
+                    <div class="category" data-category="months" data-season="spring">
+                        <div class="category-header">
+                            <span class="category-emoji">📅</span>
+                            <div class="category-name">Spring Months</div>
+                        </div>
+                        <div class="category-items" id="spring-months-items"></div>
+                    </div>
+
+                    <div class="category" data-category="activities" data-season="spring">
+                        <div class="category-header">
+                            <span class="category-emoji">🌻</span>
+                            <div class="category-name">Activities</div>
+                        </div>
+                        <div class="category-items" id="spring-activities-items"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spring Story Section -->
+            <div class="story-section">
+                <h3 class="story-title">📖 Complete the Spring Story</h3>
+                <div class="story-controls">
+                    <button class="voice-btn" onclick="readStory('spring')" title="Listen to story">
+                        🔊 Listen to Story
+                    </button>
+                    <button class="record-btn" onclick="toggleRecording('spring')" id="spring-record-btn" title="Record yourself reading">
+                        🎤 Record Reading
+                    </button>
+                    <div class="recording-status" id="spring-recording-status"></div>
+                </div>
+                <div class="story-content" id="spring-story">
+                    <!-- Story content will be populated by JavaScript -->
+                </div>
+                <div class="story-items" id="spring-story-items">
+                    <!-- Story items will be populated by JavaScript -->
+                </div>
+                <div class="story-progress" id="spring-story-progress">Story Progress: 0/6</div>
+            </div>
+        </div>
+
+        <!-- Summer Content -->
+        <div class="game-content" id="summer-content">
+            <div class="game-area">
+                <div class="items-section">
+                    <h2 class="section-title">☀️ Summer Items</h2>
+                    <div class="items-grid" id="summer-items"></div>
+                </div>
+
+                <div class="categories-grid">
+                    <div class="category" data-category="clothes" data-season="summer">
+                        <div class="category-header">
+                            <span class="category-emoji">🩱</span>
+                            <div class="category-name">Clothes & Accessories</div>
+                        </div>
+                        <div class="category-items" id="summer-clothes-items"></div>
+                    </div>
+
+                    <div class="category" data-category="weather" data-season="summer">
+                        <div class="category-header">
+                            <span class="category-emoji">🌞</span>
+                            <div class="category-name">Weather Vocabulary</div>
+                        </div>
+                        <div class="category-items" id="summer-weather-items"></div>
+                    </div>
+
+                    <div class="category" data-category="months" data-season="summer">
+                        <div class="category-header">
+                            <span class="category-emoji">📅</span>
+                            <div class="category-name">Summer Months</div>
+                        </div>
+                        <div class="category-items" id="summer-months-items"></div>
+                    </div>
+
+                    <div class="category" data-category="activities" data-season="summer">
+                        <div class="category-header">
+                            <span class="category-emoji">🏖️</span>
+                            <div class="category-name">Activities</div>
+                        </div>
+                        <div class="category-items" id="summer-activities-items"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summer Story Section -->
+            <div class="story-section">
+                <h3 class="story-title">📖 Complete the Summer Story</h3>
+                <div class="story-controls">
+                    <button class="voice-btn" onclick="readStory('summer')" title="Listen to story">
+                        🔊 Listen to Story
+                    </button>
+                    <button class="record-btn" onclick="toggleRecording('summer')" id="summer-record-btn" title="Record yourself reading">
+                        🎤 Record Reading
+                    </button>
+                    <div class="recording-status" id="summer-recording-status"></div>
+                </div>
+                <div class="story-content" id="summer-story">
+                    <!-- Story content will be populated by JavaScript -->
+                </div>
+                <div class="story-items" id="summer-story-items">
+                    <!-- Story items will be populated by JavaScript -->
+                </div>
+                <div class="story-progress" id="summer-story-progress">Story Progress: 0/6</div>
+            </div>
+        </div>
+
+        <!-- Autumn Content -->
+        <div class="game-content" id="autumn-content">
+            <div class="game-area">
+                <div class="items-section">
+                    <h2 class="section-title">🍂 Autumn Items</h2>
+                    <div class="items-grid" id="autumn-items"></div>
+                </div>
+
+                <div class="categories-grid">
+                    <div class="category" data-category="clothes" data-season="autumn">
+                        <div class="category-header">
+                            <span class="category-emoji">🧥</span>
+                            <div class="category-name">Clothes & Accessories</div>
+                        </div>
+                        <div class="category-items" id="autumn-clothes-items"></div>
+                    </div>
+
+                    <div class="category" data-category="weather" data-season="autumn">
+                        <div class="category-header">
+                            <span class="category-emoji">🌬️</span>
+                            <div class="category-name">Weather Vocabulary</div>
+                        </div>
+                        <div class="category-items" id="autumn-weather-items"></div>
+                    </div>
+
+                    <div class="category" data-category="months" data-season="autumn">
+                        <div class="category-header">
+                            <span class="category-emoji">📅</span>
+                            <div class="category-name">Autumn Months</div>
+                        </div>
+                        <div class="category-items" id="autumn-months-items"></div>
+                    </div>
+
+                    <div class="category" data-category="activities" data-season="autumn">
+                        <div class="category-header">
+                            <span class="category-emoji">🎃</span>
+                            <div class="category-name">Activities</div>
+                        </div>
+                        <div class="category-items" id="autumn-activities-items"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Autumn Story Section -->
+            <div class="story-section">
+                <h3 class="story-title">📖 Complete the Autumn Story</h3>
+                <div class="story-controls">
+                    <button class="voice-btn" onclick="readStory('autumn')" title="Listen to story">
+                        🔊 Listen to Story
+                    </button>
+                    <button class="record-btn" onclick="toggleRecording('autumn')" id="autumn-record-btn" title="Record yourself reading">
+                        🎤 Record Reading
+                    </button>
+                    <div class="recording-status" id="autumn-recording-status"></div>
+                </div>
+                <div class="story-content" id="autumn-story">
+                    <!-- Story content will be populated by JavaScript -->
+                </div>
+                <div class="story-items" id="autumn-story-items">
+                    <!-- Story items will be populated by JavaScript -->
+                </div>
+                <div class="story-progress" id="autumn-story-progress">Story Progress: 0/6</div>
+            </div>
+        </div>
+
+        <!-- Winter Content -->
+        <div class="game-content" id="winter-content">
+            <div class="game-area">
+                <div class="items-section">
+                    <h2 class="section-title">❄️ Winter Items</h2>
+                    <div class="items-grid" id="winter-items"></div>
+                </div>
+
+                <div class="categories-grid">
+                    <div class="category" data-category="clothes" data-season="winter">
+                        <div class="category-header">
+                            <span class="category-emoji">🧣</span>
+                            <div class="category-name">Clothes & Accessories</div>
+                        </div>
+                        <div class="category-items" id="winter-clothes-items"></div>
+                    </div>
+
+                    <div class="category" data-category="weather" data-season="winter">
+                        <div class="category-header">
+                            <span class="category-emoji">🌨️</span>
+                            <div class="category-name">Weather Vocabulary</div>
+                        </div>
+                        <div class="category-items" id="winter-weather-items"></div>
+                    </div>
+
+                    <div class="category" data-category="months" data-season="winter">
+                        <div class="category-header">
+                            <span class="category-emoji">📅</span>
+                            <div class="category-name">Winter Months</div>
+                        </div>
+                        <div class="category-items" id="winter-months-items"></div>
+                    </div>
+
+                    <div class="category" data-category="activities" data-season="winter">
+                        <div class="category-header">
+                            <span class="category-emoji">⛷️</span>
+                            <div class="category-name">Activities</div>
+                        </div>
+                        <div class="category-items" id="winter-activities-items"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Winter Story Section -->
+            <div class="story-section">
+                <h3 class="story-title">📖 Complete the Winter Story</h3>
+                <div class="story-controls">
+                    <button class="voice-btn" onclick="readStory('winter')" title="Listen to story">
+                        🔊 Listen to Story
+                    </button>
+                    <button class="record-btn" onclick="toggleRecording('winter')" id="winter-record-btn" title="Record yourself reading">
+                        🎤 Record Reading
+                    </button>
+                    <div class="recording-status" id="winter-recording-status"></div>
+                </div>
+                <div class="story-content" id="winter-story">
+                    <!-- Story content will be populated by JavaScript -->
+                </div>
+                <div class="story-items" id="winter-story-items">
+                    <!-- Story items will be populated by JavaScript -->
+                </div>
+                <div class="story-progress" id="winter-story-progress">Story Progress: 0/6</div>
+            </div>
+        </div>
+
+        <div class="completion-message" id="completionMessage">
+            <h2>🎉 Fantastic Work!</h2>
+            <p>You've mastered all the seasonal categories! You're becoming a seasons expert!</p>
+            <button class="reset-btn" onclick="resetCurrentSeason()">Try This Season Again</button>
+        </div>
+    </div>
+
+    <!-- Seasonal Background Animation -->
+    <div class="seasonal-bg" id="seasonalBg"></div>
+
+    <div class="feedback" id="feedback">
+        <div class="feedback-emoji" id="feedbackEmoji"></div>
+        <div class="feedback-text" id="feedbackText"></div>
+        <div class="feedback-detail" id="feedbackDetail"></div>
+    </div>
+
+    <script>
+        const seasonalStories = {
+            spring: {
+                story: "Spring is a wonderful time when nature comes alive! The weather becomes <span class='story-blank' data-answer='mild'>_____</span> and <span class='story-blank' data-answer='rainy'>_____</span>. People put on their <span class='story-blank' data-answer='light jacket'>_____</span> and grab an <span class='story-blank' data-answer='umbrella'>_____</span> before going outside. In <span class='story-blank' data-answer='March'>_____</span>, families love to go <span class='story-blank' data-answer='gardening'>_____</span> and watch the flowers bloom.",
+                answers: ['mild', 'rainy', 'light jacket', 'umbrella', 'March', 'gardening'],
+                items: [
+                    { text: 'mild', emoji: '🌤️' },
+                    { text: 'rainy', emoji: '🌧️' },
+                    { text: 'light jacket', emoji: '🧥' },
+                    { text: 'umbrella', emoji: '☂️' },
+                    { text: 'March', emoji: '🌱' },
+                    { text: 'gardening', emoji: '🌱' }
+                ]
+            },
+            summer: {
+                story: "Summer brings <span class='story-blank' data-answer='hot'>_____</span> and <span class='story-blank' data-answer='sunny'>_____</span> days! Everyone wears <span class='story-blank' data-answer='sunglasses'>_____</span> and <span class='story-blank' data-answer='sandals'>_____</span> to stay cool. During <span class='story-blank' data-answer='July'>_____</span>, families enjoy <span class='story-blank' data-answer='swimming'>_____</span> at the beach and having fun in the sun.",
+                answers: ['hot', 'sunny', 'sunglasses', 'sandals', 'July', 'swimming'],
+                items: [
+                    { text: 'hot', emoji: '🔥' },
+                    { text: 'sunny', emoji: '☀️' },
+                    { text: 'sunglasses', emoji: '🕶️' },
+                    { text: 'sandals', emoji: '👡' },
+                    { text: 'July', emoji: '🎆' },
+                    { text: 'swimming', emoji: '🏊' }
+                ]
+            },
+            autumn: {
+                story: "Autumn is a <span class='story-blank' data-answer='cool'>_____</span> and <span class='story-blank' data-answer='crisp'>_____</span> season. People wear warm <span class='story-blank' data-answer='sweater'>_____</span> and comfortable <span class='story-blank' data-answer='boots'>_____</span>. In <span class='story-blank' data-answer='October'>_____</span>, families love <span class='story-blank' data-answer='apple picking'>_____</span> and enjoying the beautiful fall colors.",
+                answers: ['cool', 'crisp', 'sweater', 'boots', 'October', 'apple picking'],
+                items: [
+                    { text: 'cool', emoji: '🍃' },
+                    { text: 'crisp', emoji: '❄️' },
+                    { text: 'sweater', emoji: '🧶' },
+                    { text: 'boots', emoji: '👢' },
+                    { text: 'October', emoji: '🎃' },
+                    { text: 'apple picking', emoji: '🍎' }
+                ]
+            },
+            winter: {
+                story: "Winter brings <span class='story-blank' data-answer='cold'>_____</span> and <span class='story-blank' data-answer='snowy'>_____</span> weather. Everyone needs a warm <span class='story-blank' data-answer='winter coat'>_____</span> and cozy <span class='story-blank' data-answer='gloves'>_____</span>. During <span class='story-blank' data-answer='January'>_____</span>, people enjoy <span class='story-blank' data-answer='skiing'>_____</span> and other winter activities.",
+                answers: ['cold', 'snowy', 'winter coat', 'gloves', 'January', 'skiing'],
+                items: [
+                    { text: 'cold', emoji: '🥶' },
+                    { text: 'snowy', emoji: '❄️' },
+                    { text: 'winter coat', emoji: '🧥' },
+                    { text: 'gloves', emoji: '🧤' },
+                    { text: 'January', emoji: '❄️' },
+                    { text: 'skiing', emoji: '⛷️' }
+                ]
+            }
+        };
+
+        const seasonalItems = {
+            spring: {
+                clothes: [
+                    { name: 'Light Jacket', emoji: '🧥' },
+                    { name: 'Raincoat', emoji: '🧥' },
+                    { name: 'Umbrella', emoji: '☂️' },
+                    { name: 'Rain Boots', emoji: '🥾' }
+                ],
+                weather: [
+                    { name: 'Rainy', emoji: '🌧️' },
+                    { name: 'Mild', emoji: '🌤️' },
+                    { name: 'Breezy', emoji: '💨' },
+                    { name: 'Fresh', emoji: '🌿' }
+                ],
+                months: [
+                    { name: 'March', emoji: '🌱' },
+                    { name: 'April', emoji: '🍀' },
+                    { name: 'May', emoji: '🌺' }
+                ],
+                activities: [
+                    { name: 'Gardening', emoji: '🌱' },
+                    { name: 'Hiking', emoji: '🥾' },
+                    { name: 'Picnicking', emoji: '🧺' },
+                    { name: 'Bird Watching', emoji: '🐦' },
+                    { name: 'Spring Cleaning', emoji: '🧹' }
+                ]
+            },
+            summer: {
+                clothes: [
+                    { name: 'Swimsuit', emoji: '🩱' },
+                    { name: 'Sunglasses', emoji: '🕶️' },
+                    { name: 'Sandals', emoji: '👡' },
+                    { name: 'Sun Hat', emoji: '👒' }
+                ],
+                weather: [
+                    { name: 'Hot', emoji: '🔥' },
+                    { name: 'Sunny', emoji: '☀️' },
+                    { name: 'Humid', emoji: '💧' },
+                    { name: 'Bright', emoji: '✨' }
+                ],
+                months: [
+                    { name: 'June', emoji: '🌞' },
+                    { name: 'July', emoji: '🎆' },
+                    { name: 'August', emoji: '🏖️' }
+                ],
+                activities: [
+                    { name: 'Swimming', emoji: '🏊' },
+                    { name: 'Beach Volleyball', emoji: '🏐' },
+                    { name: 'Camping', emoji: '⛺' },
+                    { name: 'BBQ Parties', emoji: '🍖' },
+                    { name: 'Ice Cream', emoji: '🍦' }
+                ]
+            },
+            autumn: {
+                clothes: [
+                    { name: 'Sweater', emoji: '🧶' },
+                    { name: 'Scarf', emoji: '🧣' },
+                    { name: 'Boots', emoji: '👢' },
+                    { name: 'Warm Coat', emoji: '🧥' }
+                ],
+                weather: [
+                    { name: 'Cool', emoji: '🍃' },
+                    { name: 'Crisp', emoji: '❄️' },
+                    { name: 'Windy', emoji: '💨' },
+                    { name: 'Foggy', emoji: '🌫️' }
+                ],
+                months: [
+                    { name: 'September', emoji: '🍂' },
+                    { name: 'October', emoji: '🎃' },
+                    { name: 'November', emoji: '🦃' }
+                ],
+                activities: [
+                    { name: 'Leaf Collecting', emoji: '🍂' },
+                    { name: 'Apple Picking', emoji: '🍎' },
+                    { name: 'Pumpkin Carving', emoji: '🎃' },
+                    { name: 'Cozy Reading', emoji: '📚' },
+                    { name: 'Hot Chocolate', emoji: '☕' }
+                ]
+            },
+            winter: {
+                clothes: [
+                    { name: 'Winter Coat', emoji: '🧥' },
+                    { name: 'Gloves', emoji: '🧤' },
+                    { name: 'Wool Hat', emoji: '🧢' },
+                    { name: 'Snow Boots', emoji: '🥾' }
+                ],
+                weather: [
+                    { name: 'Cold', emoji: '🥶' },
+                    { name: 'Snowy', emoji: '❄️' },
+                    { name: 'Freezing', emoji: '🧊' },
+                    { name: 'Icy', emoji: '🧊' }
+                ],
+                months: [
+                    { name: 'December', emoji: '🎅' },
+                    { name: 'January', emoji: '❄️' },
+                    { name: 'February', emoji: '💝' }
+                ],
+                activities: [
+                    { name: 'Skiing', emoji: '⛷️' },
+                    { name: 'Snowman Building', emoji: '⛄' },
+                    { name: 'Ice Skating', emoji: '⛸️' },
+                    { name: 'Hot Soup', emoji: '🍲' },
+                    { name: 'Fireplace Time', emoji: '🔥' }
+                ]
+            }
+        };
+
+        let currentSeason = 'spring';
+        let seasonScores = { spring: 0, summer: 0, autumn: 0, winter: 0 };
+        let seasonTotals = {};
+        let storyScores = { spring: 0, summer: 0, autumn: 0, winter: 0 };
+        let storyTotals = { spring: 6, summer: 6, autumn: 6, winter: 6 };
+        
+        // Voice and recording variables
+        let mediaRecorder = null;
+        let recordingChunks = [];
+        let isRecording = false;
+        let recordingTimer = null;
+        let recordingStartTime = 0;
+
+        // Calculate totals for each season
+        Object.keys(seasonalItems).forEach(season => {
+            seasonTotals[season] = Object.values(seasonalItems[season]).reduce((sum, category) => sum + category.length, 0);
+        });
+
+        function initializeGame() {
+            setupSeasonTabs();
+            loadSeason(currentSeason);
+        }
+
+        function setupSeasonTabs() {
+            document.querySelectorAll('.season-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    const season = e.currentTarget.dataset.season;
+                    switchSeason(season);
+                });
+            });
+        }
+
+        function switchSeason(season) {
+            // Update active tab
+            document.querySelectorAll('.season-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-season="${season}"]`).classList.add('active');
+
+            // Update active content
+            document.querySelectorAll('.game-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${season}-content`).classList.add('active');
+
+            currentSeason = season;
+            loadSeason(season);
+        }
+
+        function loadSeason(season) {
+            const itemsGrid = document.getElementById(`${season}-items`);
+            itemsGrid.innerHTML = '';
+
+            // Clear all category containers for this season
+            ['clothes', 'weather', 'months', 'activities'].forEach(category => {
+                const container = document.getElementById(`${season}-${category}-items`);
+                if (container) container.innerHTML = '';
+            });
+
+            // Create all items for this season
+            const allItems = [];
+            Object.keys(seasonalItems[season]).forEach(category => {
+                seasonalItems[season][category].forEach(item => {
+                    allItems.push({ ...item, category });
+                });
+            });
+
+            // Shuffle items
+            const shuffledItems = allItems.sort(() => Math.random() - 0.5);
+
+            shuffledItems.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'item';
+                itemElement.draggable = true;
+                itemElement.dataset.category = item.category;
+                itemElement.dataset.season = season;
+                itemElement.dataset.name = item.name;
+                itemElement.innerHTML = `
+                    <span class="item-emoji">${item.emoji}</span>
+                    <div class="item-name">${item.name}</div>
+                `;
+
+                itemElement.addEventListener('dragstart', handleDragStart);
+                itemElement.addEventListener('dragend', handleDragEnd);
+
+                itemsGrid.appendChild(itemElement);
+            });
+
+            updateScore();
+            document.getElementById('completionMessage').classList.remove('show');
+            
+            // Load story section
+            loadStory(season);
+            
+            // Update background
+            updateSeasonalBackground(season);
+        }
+
+        function handleDragStart(e) {
+            e.dataTransfer.setData('text/plain', '');
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        // Set up drop zones
+        document.querySelectorAll('.category').forEach(category => {
+            category.addEventListener('dragover', handleDragOver);
+            category.addEventListener('drop', handleDrop);
+            category.addEventListener('dragenter', handleDragEnter);
+            category.addEventListener('dragleave', handleDragLeave);
+        });
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            if (!e.currentTarget.contains(e.relatedTarget)) {
+                e.currentTarget.classList.remove('drag-over');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const category = e.currentTarget;
+            const draggedItem = document.querySelector('.dragging');
+            
+            if (!draggedItem) return;
+
+            category.classList.remove('drag-over');
+            
+            const itemCategory = draggedItem.dataset.category;
+            const itemSeason = draggedItem.dataset.season;
+            const dropCategory = category.dataset.category;
+            const dropSeason = category.dataset.season;
+            const itemName = draggedItem.dataset.name;
+
+            // Check if correct season and category
+            if (itemSeason === dropSeason && itemCategory === dropCategory) {
+                // Correct placement
+                seasonScores[currentSeason]++;
+                showFeedback(true, itemName, dropCategory);
+                
+                // Move item to category
+                const categoryItems = category.querySelector('.category-items');
+                draggedItem.style.cursor = 'default';
+                draggedItem.draggable = false;
+                categoryItems.appendChild(draggedItem);
+                
+                // Visual feedback
+                category.classList.add('correct');
+                setTimeout(() => category.classList.remove('correct'), 1000);
+                
+            } else {
+                // Incorrect placement
+                showFeedback(false, itemName, dropCategory, itemCategory);
+                
+                // Visual feedback
+                category.classList.add('incorrect');
+                setTimeout(() => category.classList.remove('incorrect'), 1000);
+            }
+
+            updateScore();
+            checkCompletion();
+        }
+
+        function showFeedback(isCorrect, itemName, dropCategory, correctCategory = null) {
+            const feedback = document.getElementById('feedback');
+            const emoji = document.getElementById('feedbackEmoji');
+            const text = document.getElementById('feedbackText');
+            const detail = document.getElementById('feedbackDetail');
+
+            const encouragingMessages = {
+                correct: [
+                    "Excellent work!", "Perfect match!", "You're amazing!", "Brilliant thinking!",
+                    "Outstanding!", "You've got it!", "Superb job!", "Fantastic choice!"
+                ],
+                incorrect: [
+                    "Great try! Keep going!", "Almost there!", "You're learning!", "Nice effort!",
+                    "Don't give up!", "Try again!", "You can do it!", "Keep thinking!"
+                ]
+            };
+
+            if (isCorrect) {
+                feedback.className = 'feedback show correct';
+                emoji.textContent = '🌟';
+                text.textContent = encouragingMessages.correct[Math.floor(Math.random() * encouragingMessages.correct.length)];
+                detail.textContent = `${itemName} belongs perfectly in ${dropCategory}!`;
+            } else {
+                feedback.className = 'feedback show incorrect';
+                emoji.textContent = '💪';
+                text.textContent = encouragingMessages.incorrect[Math.floor(Math.random() * encouragingMessages.incorrect.length)];
+                if (correctCategory) {
+                    detail.textContent = `${itemName} belongs in ${correctCategory}, not ${dropCategory}. You're getting closer!`;
+                } else {
+                    detail.textContent = `${itemName} doesn't belong in ${dropCategory}. Think about what season it fits best!`;
+                }
+            }
+
+            setTimeout(() => {
+                feedback.classList.remove('show');
+            }, 2500);
+        }
+
+        function updateScore() {
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            const progressFill = document.getElementById('progressFill');
+            
+            const currentScore = seasonScores[currentSeason];
+            const totalItems = seasonTotals[currentSeason];
+            
+            scoreDisplay.textContent = `Score: ${currentScore}/${totalItems}`;
+            
+            const progress = (currentScore / totalItems) * 100;
+            progressFill.style.width = `${progress}%`;
+        }
+
+        function checkCompletion() {
+            if (seasonScores[currentSeason] === seasonTotals[currentSeason]) {
+                setTimeout(() => {
+                    document.getElementById('completionMessage').classList.add('show');
+                }, 1000);
+            }
+        }
+
+        function loadStory(season) {
+            const storyContainer = document.getElementById(`${season}-story`);
+            const storyItemsContainer = document.getElementById(`${season}-story-items`);
+            const storyProgressContainer = document.getElementById(`${season}-story-progress`);
+            
+            // Load story content
+            storyContainer.innerHTML = seasonalStories[season].story;
+            
+            // Load story items
+            storyItemsContainer.innerHTML = '';
+            const shuffledItems = [...seasonalStories[season].items].sort(() => Math.random() - 0.5);
+            
+            shuffledItems.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'story-item';
+                itemElement.draggable = true;
+                itemElement.dataset.text = item.text;
+                itemElement.innerHTML = `<span>${item.emoji}</span><span>${item.text}</span>`;
+                
+                itemElement.addEventListener('dragstart', handleStoryDragStart);
+                itemElement.addEventListener('dragend', handleStoryDragEnd);
+                
+                storyItemsContainer.appendChild(itemElement);
+            });
+            
+            // Set up story blanks
+            const storyBlanks = storyContainer.querySelectorAll('.story-blank');
+            storyBlanks.forEach(blank => {
+                blank.addEventListener('dragover', handleStoryDragOver);
+                blank.addEventListener('drop', handleStoryDrop);
+                blank.addEventListener('dragenter', handleStoryDragEnter);
+                blank.addEventListener('dragleave', handleStoryDragLeave);
+            });
+            
+            updateStoryProgress(season);
+        }
+
+        function handleStoryDragStart(e) {
+            e.dataTransfer.setData('text/plain', '');
+            e.target.classList.add('dragging');
+        }
+
+        function handleStoryDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleStoryDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleStoryDragEnter(e) {
+            e.preventDefault();
+            if (!e.target.classList.contains('filled')) {
+                e.target.style.borderColor = '#4299e1';
+                e.target.style.background = '#ebf8ff';
+            }
+        }
+
+        function handleStoryDragLeave(e) {
+            if (!e.target.classList.contains('filled')) {
+                e.target.style.borderColor = '#cbd5e0';
+                e.target.style.background = '#f7fafc';
+            }
+        }
+
+        function handleStoryDrop(e) {
+            e.preventDefault();
+            const blank = e.target;
+            const draggedItem = document.querySelector('.story-item.dragging');
+            
+            if (!draggedItem || blank.classList.contains('filled')) return;
+            
+            const itemText = draggedItem.dataset.text;
+            const correctAnswer = blank.dataset.answer;
+            
+            // Reset styles
+            blank.style.borderColor = '';
+            blank.style.background = '';
+            
+            if (itemText === correctAnswer) {
+                // Correct answer
+                blank.textContent = itemText;
+                blank.classList.add('filled');
+                draggedItem.classList.add('used');
+                storyScores[currentSeason]++;
+                
+                showStoryFeedback(true, itemText);
+            } else {
+                // Incorrect answer
+                blank.classList.add('incorrect');
+                setTimeout(() => blank.classList.remove('incorrect'), 500);
+                showStoryFeedback(false, itemText, correctAnswer);
+            }
+            
+            updateStoryProgress(currentSeason);
+            checkStoryCompletion();
+        }
+
+        function showStoryFeedback(isCorrect, itemText, correctAnswer = null) {
+            const feedback = document.getElementById('feedback');
+            const emoji = document.getElementById('feedbackEmoji');
+            const text = document.getElementById('feedbackText');
+            const detail = document.getElementById('feedbackDetail');
+
+            const encouragingMessages = {
+                correct: [
+                    "Perfect fit!", "Excellent choice!", "You're doing great!", "Spot on!",
+                    "Wonderful!", "That's right!", "Amazing work!", "Keep it up!"
+                ],
+                incorrect: [
+                    "Good try!", "Almost there!", "Keep thinking!", "You're learning!",
+                    "Try another spot!", "Don't give up!", "You can do it!", "Think again!"
+                ]
+            };
+
+            if (isCorrect) {
+                feedback.className = 'feedback show correct';
+                emoji.textContent = '📚';
+                text.textContent = encouragingMessages.correct[Math.floor(Math.random() * encouragingMessages.correct.length)];
+                detail.textContent = `"${itemText}" fits perfectly in the story!`;
+            } else {
+                feedback.className = 'feedback show incorrect';
+                emoji.textContent = '🤔';
+                text.textContent = encouragingMessages.incorrect[Math.floor(Math.random() * encouragingMessages.incorrect.length)];
+                detail.textContent = correctAnswer ? 
+                    `Try looking for where "${correctAnswer}" might fit better!` : 
+                    `"${itemText}" doesn't fit here. Keep trying!`;
+            }
+
+            setTimeout(() => {
+                feedback.classList.remove('show');
+            }, 2000);
+        }
+
+        function updateStoryProgress(season) {
+            const progressContainer = document.getElementById(`${season}-story-progress`);
+            const currentScore = storyScores[season];
+            const totalItems = storyTotals[season];
+            
+            progressContainer.textContent = `Story Progress: ${currentScore}/${totalItems}`;
+        }
+
+        function checkStoryCompletion() {
+            if (storyScores[currentSeason] === storyTotals[currentSeason]) {
+                setTimeout(() => {
+                    showFeedback(true, "Story Complete!", "story");
+                }, 500);
+            }
+        }
+
+        function updateSeasonalBackground(season) {
+            const bg = document.getElementById('seasonalBg');
+            bg.className = `seasonal-bg ${season}-bg`;
+            bg.innerHTML = '';
+            
+            // Create animated elements based on season
+            if (season === 'spring') {
+                for (let i = 0; i < 15; i++) {
+                    const flower = document.createElement('div');
+                    flower.className = 'flower';
+                    flower.textContent = ['🌸', '🌺', '🌻', '🌷'][Math.floor(Math.random() * 4)];
+                    flower.style.left = Math.random() * 100 + '%';
+                    flower.style.animationDelay = Math.random() * 6 + 's';
+                    flower.style.animationDuration = (6 + Math.random() * 4) + 's';
+                    bg.appendChild(flower);
+                }
+            } else if (season === 'summer') {
+                for (let i = 0; i < 20; i++) {
+                    const ray = document.createElement('div');
+                    ray.className = 'sun-ray';
+                    ray.style.left = Math.random() * 100 + '%';
+                    ray.style.animationDelay = Math.random() * 4 + 's';
+                    bg.appendChild(ray);
+                }
+            } else if (season === 'autumn') {
+                for (let i = 0; i < 20; i++) {
+                    const leaf = document.createElement('div');
+                    leaf.className = 'leaf';
+                    leaf.textContent = ['🍂', '🍁', '🍃'][Math.floor(Math.random() * 3)];
+                    leaf.style.left = Math.random() * 100 + '%';
+                    leaf.style.animationDelay = Math.random() * 8 + 's';
+                    leaf.style.animationDuration = (8 + Math.random() * 4) + 's';
+                    bg.appendChild(leaf);
+                }
+            } else if (season === 'winter') {
+                for (let i = 0; i < 25; i++) {
+                    const snowflake = document.createElement('div');
+                    snowflake.className = 'snowflake';
+                    snowflake.textContent = ['❄️', '❅', '❆'][Math.floor(Math.random() * 3)];
+                    snowflake.style.left = Math.random() * 100 + '%';
+                    snowflake.style.animationDelay = Math.random() * 10 + 's';
+                    snowflake.style.animationDuration = (10 + Math.random() * 5) + 's';
+                    bg.appendChild(snowflake);
+                }
+            }
+        }
+
+        function resetCurrentSeason() {
+            seasonScores[currentSeason] = 0;
+            storyScores[currentSeason] = 0;
+            document.getElementById('completionMessage').classList.remove('show');
+            document.querySelectorAll('.category').forEach(cat => {
+                cat.classList.remove('correct', 'incorrect');
+            });
+            loadSeason(currentSeason);
+        }
+
+        // Voice and Recording Functions
+        function readStory(season) {
+            if ('speechSynthesis' in window) {
+                // Stop any current speech
+                speechSynthesis.cancel();
+                
+                // Get the story text without HTML tags
+                const storyElement = document.getElementById(`${season}-story`);
+                let storyText = storyElement.textContent || storyElement.innerText;
+                
+                // Replace blanks with "blank" for better reading
+                storyText = storyText.replace(/_+/g, 'blank');
+                
+                const utterance = new SpeechSynthesisUtterance(storyText);
+                utterance.rate = 0.8;
+                utterance.pitch = 1.1;
+                utterance.volume = 0.9;
+                
+                // Try to use a more natural voice
+                const voices = speechSynthesis.getVoices();
+                const preferredVoice = voices.find(voice => 
+                    voice.name.includes('Google') || 
+                    voice.name.includes('Microsoft') ||
+                    voice.lang.startsWith('en')
+                );
+                if (preferredVoice) {
+                    utterance.voice = preferredVoice;
+                }
+                
+                speechSynthesis.speak(utterance);
+                
+                // Visual feedback
+                showFeedback(true, "Story Reading", "Listen carefully and follow along!");
+            } else {
+                showFeedback(false, "Voice Not Supported", "Your browser doesn't support text-to-speech.");
+            }
+        }
+
+        async function toggleRecording(season) {
+            const recordBtn = document.getElementById(`${season}-record-btn`);
+            const statusDiv = document.getElementById(`${season}-recording-status`);
+            
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    startRecording(stream, season, recordBtn, statusDiv);
+                } catch (error) {
+                    console.error('Error accessing microphone:', error);
+                    statusDiv.innerHTML = '❌ Microphone access denied';
+                    statusDiv.className = 'recording-status';
+                }
+            } else {
+                stopRecording(season, recordBtn, statusDiv);
+            }
+        }
+
+        function startRecording(stream, season, recordBtn, statusDiv) {
+            recordingChunks = [];
+            mediaRecorder = new MediaRecorder(stream);
+            
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordingChunks.push(event.data);
+                }
+            };
+            
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(recordingChunks, { type: 'audio/wav' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                
+                // Create audio player for playback
+                const audioPlayer = document.createElement('audio');
+                audioPlayer.controls = true;
+                audioPlayer.src = audioUrl;
+                audioPlayer.style.marginTop = '10px';
+                audioPlayer.style.width = '100%';
+                
+                // Replace status with audio player
+                statusDiv.innerHTML = '';
+                statusDiv.appendChild(audioPlayer);
+                
+                // Add download option
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = '💾 Save Recording';
+                downloadBtn.className = 'voice-btn';
+                downloadBtn.style.marginTop = '10px';
+                downloadBtn.onclick = () => {
+                    const a = document.createElement('a');
+                    a.href = audioUrl;
+                    a.download = `${season}-story-reading.wav`;
+                    a.click();
+                };
+                statusDiv.appendChild(downloadBtn);
+                
+                // Analyze recording (simplified feedback)
+                analyzeRecording(season, audioBlob);
+                
+                // Stop all tracks
+                stream.getTracks().forEach(track => track.stop());
+            };
+            
+            mediaRecorder.start();
+            isRecording = true;
+            recordingStartTime = Date.now();
+            
+            // Update UI
+            recordBtn.classList.add('recording');
+            recordBtn.innerHTML = '⏹️ Stop Recording';
+            statusDiv.className = 'recording-status active';
+            statusDiv.innerHTML = '🔴 Recording... <span class="recording-timer">0:00</span>';
+            
+            // Start timer
+            recordingTimer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                const timerElement = statusDiv.querySelector('.recording-timer');
+                if (timerElement) {
+                    timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+        }
+
+        function stopRecording(season, recordBtn, statusDiv) {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            
+            isRecording = false;
+            clearInterval(recordingTimer);
+            
+            // Update UI
+            recordBtn.classList.remove('recording');
+            recordBtn.innerHTML = '🎤 Record Reading';
+            statusDiv.className = 'recording-status';
+            statusDiv.innerHTML = '⏳ Processing recording...';
+        }
+
+        function analyzeRecording(season, audioBlob) {
+            // Simplified analysis - in a real app, you'd use speech recognition
+            // For now, we'll provide encouraging feedback based on recording length
+            const duration = recordingChunks.length; // Rough estimate
+            
+            setTimeout(() => {
+                let feedback = '';
+                if (duration > 5) {
+                    feedback = '🌟 Great job reading the story! Your pronunciation sounds clear and confident.';
+                } else if (duration > 2) {
+                    feedback = '👍 Good effort! Try reading a bit slower for even better clarity.';
+                } else {
+                    feedback = '💪 Keep practicing! Try reading the whole story out loud.';
+                }
+                
+                const statusDiv = document.getElementById(`${season}-recording-status`);
+                const feedbackDiv = document.createElement('div');
+                feedbackDiv.style.marginTop = '10px';
+                feedbackDiv.style.padding = '10px';
+                feedbackDiv.style.background = '#f0fff4';
+                feedbackDiv.style.borderRadius = '8px';
+                feedbackDiv.style.fontSize = '0.9rem';
+                feedbackDiv.innerHTML = feedback;
+                statusDiv.appendChild(feedbackDiv);
+            }, 1500);
+        }
+
+        // Initialize the game
+        initializeGame();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98a2ee0634757458',t:'MTc1OTczMDMzNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
